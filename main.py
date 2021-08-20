@@ -2,10 +2,10 @@ import os
 import re
 import tkinter as tk
 import winshell
+import win32com.client
 from os import chmod
 from pathlib import Path
 from tkinter import filedialog
-from win32com.client import Dispatch
 from lang_dict import lang_dict
 
 
@@ -69,13 +69,15 @@ def create_shortcut():
         target = os.path.join(exe_path_parent, "LeagueClient.exe")
         wDir = exe_path_parent
 
-        shell = Dispatch('WScript.Shell')
+        shell = win32com.client.Dispatch('WScript.Shell')
         shortcut = shell.CreateShortCut(str(desktop_path))
         shortcut.Targetpath = str(target)
         shortcut.WorkingDirectory = str(wDir)
+        shortcut.Arguments = "-locale=" + str(chosen_lang)
         statusbar.configure(text="Creando acceso directo...")
         shortcut.save()
         statusbar.configure(text="Acceso directo creado correctamente.")
+
         if perm_var is True:
             statusbar.configure(text="Cambiando permisos de acceso directo")
             chmod(str(desktop_path), 100)
@@ -84,15 +86,15 @@ def create_shortcut():
             pass
     except IndexError:
         statusbar.configure(text="Seleccione la ubicación del archivo LeagueClientSettings.yaml")
-    except:
-        statusbar.configure(text="No se pudo guardar el acceso directo. Verifique que no exista un acceso directo.")
+    # except:
+    #     statusbar.configure(text="No se pudo guardar el acceso directo. Verifique que no exista un acceso directo.")
 
-def accept():
-    global chosen_lang
+def change_language():
+    # global chosen_lang
     try:
-        for language in lang_dict:
-            if language == lang_var.get():
-                chosen_lang = lang_dict[language]
+        # for language in lang_dict:
+        #     if language == lang_var.get():
+        #         chosen_lang = lang_dict[language]
         with open(file_path, "r+") as file:
             f_contents = file.read()
             regex = re.sub('[a-z][a-z]_[A-Z][A-Z]', chosen_lang, f_contents)
@@ -113,10 +115,19 @@ def accept():
         statusbar.configure(text="Seleccione la ubicación del archivo LeagueClientSettings.yaml y un idioma")
 
 
-c_shortcut_button = tk.Button(buttons, text="Crear acceso directo", command=create_shortcut, width=53)
-c_shortcut_button.grid(column=0, row=5)
+def accept():
+    global chosen_lang
+    for language in lang_dict:
+        if language == lang_var.get():
+            chosen_lang = lang_dict[language]
+    create_shortcut()
+    change_language()
 
-accept = tk.Button(buttons, text="Cambiar idioma", command=accept, width=53)
-accept.grid(column=1, row=5, columnspan=1)
+
+# c_shortcut_button = tk.Button(buttons, text="Crear acceso directo", command=create_shortcut, width=53)
+# c_shortcut_button.grid(column=0, row=5)
+
+accept_button = tk.Button(buttons, text="Cambiar idioma", command=accept, width=108)
+accept_button.grid(column=1, row=5, columnspan=1)
 
 root.mainloop()
